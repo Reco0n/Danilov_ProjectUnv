@@ -29,7 +29,7 @@ void inputPipe(Pipe& pipe){
             cin>>pipe.length;
         }
 
-    cout<<"Диаметр(мм)";
+    cout<<"Диаметр(мм): ";
     cin>>pipe.diametr;
     while (pipe.diametr <= 0){
         cout<<"Диаметр должен быть положительным. Повторите: ";
@@ -61,8 +61,8 @@ struct KC{
 };
     
 void inputKC(KC& kc){
-    cout<<"Название КС";
-    getline(cin, kc.Name);
+    cout<<"Название КС: ";
+    getline(cin >> ws, kc.Name);
 
     cout<<"Кол-во цехов: ";
     cin>>kc.amountFactories;
