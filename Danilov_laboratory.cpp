@@ -6,7 +6,7 @@ using namespace std;
 
 void clearInput(){
     cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.ignore(100000, '\n');
 }
 
 struct Pipe{
@@ -18,15 +18,14 @@ struct Pipe{
 const string FILE_NAME = "pipeline_data.txt";
 
 void inputPipe(Pipe& pipe){
-    cout<<"Название: ";
+    cout<<"\nНазвание: ";
     getline(cin >> ws, pipe.Name);
 
     cout<<"Длина(км): ";
     cin>>pipe.length;
-    while (pipe.length <= 0){
+    while (!(cin>> pipe.length)||pipe.length <= 0){
             cout<<"Длина должна быть положительна.Повторите: ";
             clearInput();
-            cin>>pipe.length;
         }
 
     cout<<"Диаметр(мм): ";
@@ -41,7 +40,7 @@ void inputPipe(Pipe& pipe){
 }
 
 void displayPipe(Pipe& pipe){
-    cout<<"---Труба---";
+    cout<<"---Труба---\n";
     cout<<"Назване: "<<pipe.Name<<"\n";
     cout<<"Длина: "<<pipe.length<<"\n";
     cout<<"Диаметр: "<<pipe.diametr<<"\n";
@@ -61,15 +60,14 @@ struct KC{
 };
     
 void inputKC(KC& kc){
-    cout<<"Название КС: ";
+    cout<<"\nНазвание КС: ";
     getline(cin >> ws, kc.Name);
 
     cout<<"Кол-во цехов: ";
     cin>>kc.amountFactories;
-    while (kc.amountFactories <= 0){
+    while (!(cin>>kc.amountFactories)||kc.amountFactories <= 0){
         cout<<"Кол-во должно быть положительным. Повторите: ";
         clearInput();
-        cin>>kc.amountFactories;
     }
 
     cout<<"Кол-во цехов в работе: ";
@@ -91,7 +89,7 @@ void inputKC(KC& kc){
 }
 
 void displayKC(KC& kc){
-    cout<<"---Труба--"<<"\n";
+    cout<<"---KC--\n";
     cout<<"Название: "<<kc.Name<<"\n";
     cout<<"Всего цехов: "<<kc.amountFactories<<"\n";
     cout<<"Цехов в работе: "<<kc.workingFactories<<"\n";
@@ -117,39 +115,86 @@ void StopFactory(KC& kc){
     }
 }
 
-void saveAll(Pipe& pipe, bool pipeExists, KC& kc, bool kcExists){
-    ofstream out(FILE_NAME);
-    if (pipeExists){
-        out<<"PIPE\n"<<pipe.Name<<'\n'<<pipe.length<<'\n'<<pipe.diametr<<'\n'<<pipe.isRepair<<'\n';
+bool saveAll(const Pipe& pipe, bool pipeExists,
+             const KC& kc, bool kcExists,
+             const string& filename) {
+    ofstream out(filename);
+    if (!out) {
+        cout << "Ошибка открытия файла для записи.\n";
+        return false;
     }
-    if (kcExists){
-        out<<"KC\n"<<kc.Name<<'\n'<<kc.amountFactories<<'\n'<<kc.workingFactories<<'\n'<<kc.levelFactory<<'\n';
+
+    if (pipeExists) {
+        out << "PIPE\n"
+            << pipe.Name << '\n'
+            << pipe.length << '\n'
+            << pipe.diametr << '\n'
+            << pipe.isRepair << '\n';
     }
-    cout<<"Данные сохранены в "<<FILE_NAME<<"\n";
-}
- 
-void loadAll(Pipe& pipe, bool& pipeExists, KC& kc, bool& kcExists){
-    ifstream in(FILE_NAME);
-    if (!in){
-        cout<<"Файл не найден.\n";
-        return;
+
+    if (kcExists) {
+        out << "KC\n"
+            << kc.Name << '\n'
+            << kc.amountFactories << '\n'
+            << kc.workingFactories << '\n'
+            << kc.levelFactory << '\n';
     }
-    string tag;
-    while (in>>tag){
-        if (tag == "PIPE"){
-            in>>pipe.Name>>pipe.length>>pipe.diametr>>pipe.isRepair;
-            pipeExists = true;
-        }
-        else if (tag == "KC"){
-            in>>kc.Name>>kc.amountFactories>>kc.workingFactories>>kc.levelFactory;
-            kcExists = true;
-        }
-    }
-    cout<<"Данные загружены.\n";
+
+    cout << "Данные сохранены в " << filename << "\n";
+    return true;
 }
 
+bool loadAll(Pipe& pipe, bool& pipeExists,
+             KC& kc, bool& kcExists,
+             const string& filename) {
+    ifstream in(filename);
+    if (!in) {
+        cout << "Файл не найден.\n";
+        return false;
+    }
+
+    string tag;
+    while (in >> tag) {
+        if (tag == "PIPE") {
+            Pipe tempPipe;
+            in >> ws;
+            getline(in, tempPipe.Name);
+            in >> tempPipe.length >> tempPipe.diametr >> tempPipe.isRepair;
+
+            
+            if (tempPipe.length <= 0 || tempPipe.diametr <= 0) {
+                cout << "Ошибка: в файле некорректные данные трубы (длина или диаметр <= 0).\n";
+                return false;
+            }
+            pipe = tempPipe;
+            pipeExists = true;
+        }
+        else if (tag == "KC") {
+            KC tempKC;
+            in >> ws;
+            getline(in, tempKC.Name);
+            in >> tempKC.amountFactories >> tempKC.workingFactories >> tempKC.levelFactory;
+
+
+            if (tempKC.amountFactories <= 0 || tempKC.levelFactory <= 0 ||tempKC.workingFactories < 0 ||tempKC.workingFactories > tempKC.amountFactories) {
+                cout << "Ошибка: в файле некорректные данные КС.\n";
+                return false;
+            }
+            kc = tempKC;
+            kcExists = true;
+        }
+        else {
+            cout << "Предупреждение: неизвестный тег в файле: " << tag << "\n";
+            string dummy;
+            getline(in, dummy);
+        }
+    }
+
+    cout << "Данные загружены.\n";
+    return true;
+}
 void displayManu(){
-    cout<<"1.Труба\n";
+    cout<<"\n1.Труба\n";
     cout<<"2.КС\n";
     cout<<"3.Просмотр\n";
     cout<<"4.Редакт. трубы\n";
@@ -192,7 +237,7 @@ int main(){
                 }
                 inputPipe(pipe);
                 pipeExists = true;
-                cout<<"Труба добавлена.\n";
+                cout<<"Труба добавлена.\n\n";
                 break;
             }
 
@@ -207,7 +252,7 @@ int main(){
                 }
                 inputKC(kc);
                 kcExists = true;
-                cout<<"КС добавлена.\n";
+                cout<<"КС добавлена.\n\n";
                 break;
             }
 
@@ -216,13 +261,13 @@ int main(){
                 else cout<<"Трубы нет.\n";
 
                 if (kcExists) displayKC(kc);
-                else cout<<"КС нет";
+                else cout<<"КС нет.\n";
                 break;
             }
 
             case 4:{
                 if (!pipeExists){
-                    cout<<"Сначала создайте трубу";
+                    cout<<"Сначала создайте трубу\n";
                     break;
                 }
                 isWorking(pipe);
@@ -250,12 +295,12 @@ int main(){
                 break;
             }
             case 6:{
-                saveAll(pipe, pipeExists, kc, kcExists);
+                saveAll(pipe, pipeExists, kc, kcExists, FILE_NAME);
                 break;
             }
  
             case 7:{
-                loadAll(pipe, pipeExists, kc, kcExists);
+                loadAll(pipe, pipeExists, kc, kcExists, FILE_NAME);
                 break;
             }
  
