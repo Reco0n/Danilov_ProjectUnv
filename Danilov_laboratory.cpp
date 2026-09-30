@@ -22,18 +22,15 @@ void inputPipe(Pipe& pipe){
     getline(cin >> ws, pipe.Name);
 
     cout<<"Длина(км): ";
-    cin>>pipe.length;
     while (!(cin>> pipe.length)||pipe.length <= 0){
             cout<<"Длина должна быть положительна.Повторите: ";
             clearInput();
         }
 
     cout<<"Диаметр(мм): ";
-    cin>>pipe.diametr;
-    while (pipe.diametr <= 0){
+    while (!(cin >> pipe.diametr)||pipe.diametr <= 0){
         cout<<"Диаметр должен быть положительным. Повторите: ";
         clearInput();
-        cin>>pipe.diametr;
     }
         
     pipe.isRepair = false;
@@ -64,27 +61,23 @@ void inputKC(KC& kc){
     getline(cin >> ws, kc.Name);
 
     cout<<"Кол-во цехов: ";
-    cin>>kc.amountFactories;
+
     while (!(cin>>kc.amountFactories)||kc.amountFactories <= 0){
         cout<<"Кол-во должно быть положительным. Повторите: ";
         clearInput();
     }
 
     cout<<"Кол-во цехов в работе: ";
-    cin>>kc.workingFactories;
-    while (kc.workingFactories < 0 || kc.workingFactories > kc.amountFactories){
+    while (!(cin>>kc.workingFactories) || kc.workingFactories < 0 || kc.workingFactories > kc.amountFactories){
         cout<<"Значение должно быть от 0 до "<<kc.amountFactories<<". Повторите: ";
         clearInput();
-        cin>>kc.workingFactories;
     }
     
     
     cout<<"Класс станции: ";
-    cin>>kc.levelFactory;
-    while (kc.levelFactory <= 0){
+    while (!(cin>>kc.levelFactory)|| kc.levelFactory <= 0){
         cout<<"Класс станции должен быть положительным. Повторите: ";
         clearInput();
-        cin>>kc.levelFactory;
     }
 }
 
