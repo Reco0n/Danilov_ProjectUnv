@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <limits>
 using namespace std;
 
 
@@ -108,15 +107,7 @@ void StopFactory(KC& kc){
     }
 }
 
-bool saveAll(const Pipe& pipe, bool pipeExists,
-             const KC& kc, bool kcExists,
-             const string& filename) {
-    ofstream out(filename);
-    if (!out) {
-        cout << "Ошибка открытия файла для записи.\n";
-        return false;
-    }
-
+void savePipe(ofstream& out, const Pipe& pipe, bool pipeExists) {
     if (pipeExists) {
         out << "PIPE\n"
             << pipe.Name << '\n'
@@ -124,7 +115,10 @@ bool saveAll(const Pipe& pipe, bool pipeExists,
             << pipe.diametr << '\n'
             << pipe.isRepair << '\n';
     }
+}
 
+
+void saveKC(ofstream& out, const KC& kc, bool kcExists){
     if (kcExists) {
         out << "KC\n"
             << kc.Name << '\n'
@@ -132,20 +126,21 @@ bool saveAll(const Pipe& pipe, bool pipeExists,
             << kc.workingFactories << '\n'
             << kc.levelFactory << '\n';
     }
+}
 
+bool saveAll(const Pipe& pipe, bool pipeExists, const KC& kc, bool kcExists,const string& filename){
+    ofstream out(filename);
+    if (!out) {
+        cout << "Ошибка открытия файла для записи.\n";
+        return false;
+    }
+    savePipe(out, pipe,pipeExists);
+    saveKC(out, kc, kcExists);
     cout << "Данные сохранены в " << filename << "\n";
     return true;
 }
 
-bool loadAll(Pipe& pipe, bool& pipeExists,
-             KC& kc, bool& kcExists,
-             const string& filename) {
-    ifstream in(filename);
-    if (!in) {
-        cout << "Файл не найден.\n";
-        return false;
-    }
-
+void loadPipe(ifstream& in, Pipe& pipe, bool& pipeExists) {
     string tag;
     while (in >> tag) {
         if (tag == "PIPE") {
@@ -157,32 +152,36 @@ bool loadAll(Pipe& pipe, bool& pipeExists,
             
             if (tempPipe.length <= 0 || tempPipe.diametr <= 0) {
                 cout << "Ошибка: в файле некорректные данные трубы (длина или диаметр <= 0).\n";
-                return false;
             }
             pipe = tempPipe;
             pipeExists = true;
         }
-        else if (tag == "KC") {
-            KC tempKC;
-            in >> ws;
-            getline(in, tempKC.Name);
-            in >> tempKC.amountFactories >> tempKC.workingFactories >> tempKC.levelFactory;
-
-
-            if (tempKC.amountFactories <= 0 || tempKC.levelFactory <= 0 ||tempKC.workingFactories < 0 ||tempKC.workingFactories > tempKC.amountFactories) {
-                cout << "Ошибка: в файле некорректные данные КС.\n";
-                return false;
-            }
-            kc = tempKC;
-            kcExists = true;
-        }
-        else {
-            cout << "Предупреждение: неизвестный тег в файле: " << tag << "\n";
-            string dummy;
-            getline(in, dummy);
-        }
     }
+}
 
+void loadKC(ifstream &in, KC& kc, bool& kcExists) {
+    string tag;
+    if (tag == "KC") {
+        KC tempKC;
+        in >> ws;
+        getline(in, tempKC.Name);
+        in >> tempKC.amountFactories >> tempKC.workingFactories >> tempKC.levelFactory;
+        if (tempKC.amountFactories <= 0 || tempKC.levelFactory <= 0 ||tempKC.workingFactories < 0 ||tempKC.workingFactories > tempKC.amountFactories) {
+            cout << "Ошибка: в файле некорректные данные КС.\n";
+        }
+        kc = tempKC;
+        kcExists = true;
+    }
+}
+
+bool loadAll(Pipe& pipe, bool& pipeExists, KC& kc, bool& kcExists,const string& filename){
+    ifstream in(filename);
+    if (!in) {
+        cout << "Файл не найден.\n";
+        return false;
+    }
+    loadPipe(in,pipe,pipeExists);
+    loadKC(in,kc,kcExists);
     cout << "Данные загружены.\n";
     return true;
 }
@@ -236,7 +235,7 @@ int main(){
 
             case 2:{
                 if (kcExists){
-                    cout<<"(y/n): ";
+                    cout<<"КС уже есть. Перезаписать?(y/n): ";
                     char ans;
                     cin>>ans;
                     if (ans !='y'){
@@ -275,28 +274,31 @@ int main(){
                 cout<<"2.Остановка цеха\n";
                 cout<<"Выбор: ";
                 int subChoice;
-                cin>>subChoice;
+                while (!(cin>>subChoice)){
+                    clearInput();
+                    cout<<"Введите 1 или 2.\n";
+                }
 
                 switch (subChoice){
                     case 1: StartFactory(kc);
                     break;
                     case 2: StopFactory(kc);
-                    break;
-                    default:cout<<"Нет такого пункта.\n";
                     break; 
+                    default: "Введите 1 или 2.\n";
+                    break;
+                
                 }
                 break;
             }
+            
             case 6:{
-                saveAll(pipe, pipeExists, kc, kcExists, FILE_NAME);
+                saveAll(pipe, pipeExists,kc,kcExists,FILE_NAME);
                 break;
             }
- 
             case 7:{
-                loadAll(pipe, pipeExists, kc, kcExists, FILE_NAME);
+                loadAll(pipe, pipeExists,kc,kcExists,FILE_NAME);
                 break;
             }
- 
             default:{
                 cout<<"Нет такого пункта.\n";
                 break;
