@@ -405,3 +405,6 @@ FodyWeavers.xsd
 *.dSYM
 .vscode/
 *.DS_Store
+# Сборка и логи программы
+Danilov_laboratory
+log_*.txt
