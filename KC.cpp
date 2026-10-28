@@ -18,6 +18,39 @@ int KC::GetId() const
 	return id;
 }
 
+std::string KC::GetName() const
+{
+	return name;
+}
+
+int KC::GetWorking() const
+{
+	return working;
+}
+
+int KC::GetMaxID()
+{
+	return MaxID;
+}
+
+void KC::SetMaxID(int value)
+{
+	MaxID = value;
+}
+
+void KC::Save(ostream& out) const
+{
+	out << name << endl << total << " " << working << " " << level << endl;
+}
+
+bool KC::Load(istream& in)
+{
+	in >> ws;
+	getline(in, name);
+	in >> total >> working >> level;
+	return !in.fail() && total > 0 && level > 0 && working >= 0 && working <= total;
+}
+
 double KC::UnusedPercent() const
 {
 	return 100.0 * (total - working) / total;
