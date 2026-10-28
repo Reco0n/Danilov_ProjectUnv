@@ -18,9 +18,47 @@ int Pipe::GetId() const
 	return id;
 }
 
+std::string Pipe::GetName() const
+{
+	return name;
+}
+
+bool Pipe::IsInRepair() const
+{
+	return inRepair;
+}
+
 void Pipe::SwitchRepair()
 {
 	inRepair = !inRepair;
+}
+
+void Pipe::SetRepair(bool value)
+{
+	inRepair = value;
+}
+
+int Pipe::GetMaxID()
+{
+	return MaxID;
+}
+
+void Pipe::SetMaxID(int value)
+{
+	MaxID = value;
+}
+
+void Pipe::Save(ostream& out) const
+{
+	out << name << endl << length << " " << diameter << " " << inRepair << endl;
+}
+
+bool Pipe::Load(istream& in)
+{
+	in >> ws;
+	getline(in, name);
+	in >> length >> diameter >> inRepair;
+	return !in.fail() && length > 0 && diameter > 0;
 }
 
 ostream& operator << (ostream& out, const Pipe& p)
